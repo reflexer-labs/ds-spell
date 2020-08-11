@@ -26,21 +26,27 @@ contract DSSpell is DSExec, DSNote {
     bytes   public data;
     bool    public done;
 
+    event Cast(address whom, bytes data, uint256 mana);
+
     constructor(address whom_, uint256 mana_, bytes memory data_) public {
         whom = whom_;
         mana = mana_;
         data = data_;
     }
     // Only marked 'done' if CALL succeeds (not exceptional condition).
-    function cast() public note {
+    function cast() public {
         require(!done, "ds-spell-already-cast");
         exec(whom, data, mana);
         done = true;
+        emit Cast(whom, data, mana);
     }
 }
 
 contract DSSpellBook {
+    event Make(address spell, address whom, uint256 mana, bytes data);
     function make(address whom, uint256 mana, bytes memory data) public returns (DSSpell) {
-        return new DSSpell(whom, mana, data);
+        DSSpell spell = new DSSpell(whom, mana, data);
+        emit Make(address(spell), whom, mana, data);
+        return spell;
     }
 }
